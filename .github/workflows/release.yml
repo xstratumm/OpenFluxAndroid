@@ -42,6 +42,13 @@ jobs:
           git -C OpenFlux fetch origin tag v0.17.1 --depth 1
           git -C OpenFlux checkout --detach FETCH_HEAD
 
+      - name: Rename captcha API to prompt (core 0.17.x)
+        run: |
+          f=androidApp/src/main/kotlin/io/openflux/android/core/AndroidConnectionService.kt
+          sed -i -E 's/Mobile\.(pending|submit|cancel)Captcha/Mobile.\1Prompt/g' "$f"
+          grep -cE 'Mobile\.(pending|submit|cancel)Prompt' "$f"
+          if grep -qE 'Mobile\.[a-z]+Captcha' "$f"; then echo "::error::old captcha calls left"; exit 1; fi
+      
       - name: Version
         id: version
         run: |
