@@ -33,7 +33,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          repository: p1neappleXpress/OpenFluxAndroid
+          ref: v3.7.0
           submodules: recursive
+
+      - name: Pin core to v0.17.1
+        run: |
+          git -C OpenFlux fetch origin tag v0.17.1 --depth 1
+          git -C OpenFlux checkout --detach FETCH_HEAD
 
       - name: Version
         id: version
@@ -96,7 +103,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon -PappVersion=${{ steps.version.outputs.value }} :androidApp:assembleRelease
+        run: ./gradlew --no-daemon -PappVersion=${{ steps.version.outputs.value }} :androidApp:assembleDebug
 
       - name: Verify APK signatures
         if: inputs.publish || startsWith(github.ref, 'refs/tags/v')
@@ -107,7 +114,7 @@ jobs:
       - name: Collect
         run: |
           mkdir -p dist
-          find androidApp/build/outputs/apk/release -name '*.apk' -print -exec cp {} dist/ \;
+          find androidApp/build/outputs/apk/debug -name '*.apk' -print -exec cp {} dist/ \;
           for apk in dist/*.apk; do mv "$apk" "dist/OpenFluxAndroid-${{ steps.version.outputs.value }}-$(basename "$apk")"; done
           cd dist && sha256sum *.apk > SHA256SUMS.txt && cat SHA256SUMS.txt
 
